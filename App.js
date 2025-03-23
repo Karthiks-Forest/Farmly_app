@@ -18,10 +18,14 @@ import HomeScreen from './src/Screens/Home/HomeScreen';
 import ExploreScreen from './src/Screens/Home/ExploreScreen';
 import CartScreen from './src/Screens/Home/CartScreen';
 import ProfileScreen from './src/Screens/Home/ProfileScreen';
+import BuyScreen from './src/Screens/Home/BuyScreen';
 
 // Home Inner
 import CategoryScreen from './src/Screens/Home/HomeInner/CategoryScreen';
 import SettingsScreen from './src/Screens/Home/HomeInner/SettingsScreen';
+import ViewAllScreen from './src/Screens/Home/HomeInner/ViewAllScreen';
+import FarmScreen from './src/Screens/Home/HomeInner/FarmScreen';
+import OrderDetailsScreen from './src/Screens/Home/OrderDetailsScreen';
 
 const stack = createNativeStackNavigator();
 const BottomStack = createBottomTabNavigator();
@@ -61,6 +65,8 @@ const HomeStack = () => {
       <HomeInnerStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeInnerStack.Screen name="CategoryScreen" component={CategoryScreen} />
       <HomeInnerStack.Screen name="settings" component={SettingsScreen} />
+      <HomeInnerStack.Screen name="viewall" component={ViewAllScreen} />
+      <HomeInnerStack.Screen name="farmScreen" component={FarmScreen} />
     </HomeInnerStack.Navigator>
   );
 };
@@ -73,6 +79,7 @@ const CartStack = () => {
       }}>
       <HomeInnerStack.Screen name="CartMain" component={CartScreen} />
       <HomeInnerStack.Screen name="settings" component={SettingsScreen} />
+      <HomeInnerStack.Screen name="buystack" component={BuyScreen} />
     </CartInnerStack.Navigator>
   );
 };
@@ -85,6 +92,7 @@ const ExploreStack = () => {
       }}>
       <ExploreInnerStack.Screen name="ExploreMain" component={ExploreScreen} />
       <ExploreInnerStack.Screen name="settings" component={SettingsScreen} />
+      <HomeInnerStack.Screen name="farmScreen" component={FarmScreen} />
     </ExploreInnerStack.Navigator>
   );
 };
@@ -97,6 +105,7 @@ const ProfileStack = () => {
       }}>
       <ProfileInnerStack.Screen name="ProfileMain" component={ProfileScreen} />
       <ProfileInnerStack.Screen name="settings" component={SettingsScreen} />
+      <ProfileInnerStack.Screen name='OrderDetails' component={OrderDetailsScreen} />
     </ProfileInnerStack.Navigator>
   );
 };

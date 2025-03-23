@@ -1,66 +1,39 @@
-import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TextInput,
-  FlatList,
+  StatusBar,
+  ScrollView,
   Image,
   TouchableOpacity,
-  StatusBar,
+  FlatList,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import React, {useEffect, useState} from 'react';
+import {
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
+import {getSession} from '../../../utils/SecureStorage';
 import {useTranslation} from 'react-i18next';
-import {getSession} from '../../utils/SecureStorage';
-import {addToCart} from '../../data/db';
-import data from '../../data/data.json';
 import Toast from 'react-native-toast-message';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {addToCart} from '../../../data/db';
 
-const ExploreScreen = () => {
+const ViewAllScreen = () => {
+  const route = useRoute();
+  const {title, data, type} = route.params;
   const {t} = useTranslation();
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [allItems, setAllItems] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
-
-  // Combine all products and stores
-  useEffect(() => {
-    const products = data.stores.flatMap(store =>
-      store.products.map(product => ({
-        ...product,
-        type: 'product',
-        store_id: store.id,
-        farm: store.name,
-      })),
-    );
-
-    const stores = data.stores.map(store => ({
-      ...store,
-      type: 'store',
-      image: store.logo,
-    }));
-
-    setAllItems([...products, ...stores]);
-    setFilteredItems([...products, ...stores]);
-  }, []);
 
   useEffect(() => {
     const fetchSession = async () => {
       const sessionUser = await getSession();
-      setUser(sessionUser);
+      if (sessionUser) setUser(sessionUser);
     };
     fetchSession();
   }, []);
-
-  const handleSearch = text => {
-    setSearchQuery(text);
-    const filtered = allItems.filter(item =>
-      item.name.toLowerCase().includes(text.toLowerCase()),
-    );
-    setFilteredItems(filtered);
-  };
 
   const handleAddToCart = async product => {
     try {
@@ -90,7 +63,7 @@ const ExploreScreen = () => {
   };
 
   const renderItem = ({item}) => {
-    if (item.type === 'store') {
+    if (type === 'stores') {
       return (
         <TouchableOpacity
           style={styles.storeCard}
@@ -106,7 +79,7 @@ const ExploreScreen = () => {
         <View
           style={[
             styles.imageContainer,
-            {backgroundColor: item.background_color || '#F4F4F4'},
+            {backgroundColor: item.background_color},
           ]}>
           <Image source={{uri: item.image}} style={styles.productImage} />
           <TouchableOpacity
@@ -116,6 +89,14 @@ const ExploreScreen = () => {
           </TouchableOpacity>
         </View>
         <Text style={styles.productName}>{t(item.name)}</Text>
+        {item.farm && (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('farmScreen', {storeId: item.id})
+            }>
+            <Text style={styles.farm}>{t(item.farm)}</Text>
+          </TouchableOpacity>
+        )}
         <Text style={styles.price}>{item.price}</Text>
       </View>
     );
@@ -123,34 +104,25 @@ const ExploreScreen = () => {
 
   return (
     <>
-      <StatusBar backgroundColor="#F4F4F4" barStyle="dark-content" />
+      <StatusBar backgroundColor="#709856" barStyle="light-content" />
       <View style={styles.container}>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t('search_placeholder')}
-            placeholderTextColor="#666"
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-          <MaterialIcons
-            name="search"
-            size={24}
-            color="#666"
-            style={styles.searchIcon}
-          />
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}>
+            <MaterialIcons name="arrow-back-ios-new" size={22} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t(title)}</Text>
+          <View style={{width: 22}} />
         </View>
 
         <FlatList
-          data={filteredItems}
+          data={data}
           keyExtractor={item => item.id.toString()}
-          numColumns={2}
-          columnWrapperStyle={styles.columnWrapper}
+          numColumns={type === 'stores' ? 1 : 2}
+          columnWrapperStyle={type !== 'stores' && styles.columnWrapper}
           contentContainerStyle={styles.listContent}
           renderItem={renderItem}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>{t('no_results')}</Text>
-          }
         />
       </View>
     </>
@@ -161,43 +133,43 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F4F4F4',
-    paddingHorizontal: 16,
   },
-  searchContainer: {
-    marginVertical: 16,
-    position: 'relative',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#709856',
   },
-  searchInput: {
-    backgroundColor: '#FFF',
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 45,
-    fontSize: 16,
-    fontFamily: 'Sansita-Regular',
-    color: '#212121',
-    elevation: 2,
+  backButton: {
+    padding: 8,
   },
-  searchIcon: {
-    position: 'absolute',
-    left: 15,
-    top: 14,
+  headerTitle: {
+    fontSize: 20,
+    color: '#FFF',
+    fontFamily: 'Sansita-Bold',
+    flex: 1,
+    textAlign: 'center',
   },
   listContent: {
-    paddingBottom: 20,
+    padding: 8,
   },
   columnWrapper: {
     justifyContent: 'space-between',
+    paddingHorizontal: 8,
   },
   productCard: {
     width: '48%',
     marginBottom: 16,
+    borderRadius: 10,
     backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 12,
+    padding: 8,
   },
   imageContainer: {
     borderRadius: 10,
     aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 8,
   },
   productImage: {
@@ -206,15 +178,21 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   productName: {
-    fontSize: 14,
-    fontFamily: 'Sansita-Bold',
+    fontSize: 16,
     color: '#709856',
+    fontFamily: 'Sansita-Bold',
+    marginBottom: 4,
+  },
+  farm: {
+    fontSize: 12,
+    color: '#666',
+    fontFamily: 'Sansita-Regular',
     marginBottom: 4,
   },
   price: {
     fontSize: 14,
-    fontFamily: 'Sansita-Bold',
     color: '#212121',
+    fontFamily: 'Sansita-Bold',
   },
   addButton: {
     position: 'absolute',
@@ -222,15 +200,14 @@ const styles = StyleSheet.create({
     right: 8,
     backgroundColor: '#FFF',
     borderRadius: 20,
-    padding: 6,
+    padding: 4,
     elevation: 2,
   },
   storeCard: {
-    width: '100%',
     backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
     marginBottom: 16,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -242,17 +219,10 @@ const styles = StyleSheet.create({
   },
   storeName: {
     fontSize: 16,
-    fontFamily: 'Sansita-Bold',
     color: '#709856',
+    fontFamily: 'Sansita-Bold',
     flex: 1,
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 40,
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Sansita-Regular',
   },
 });
 
-export default ExploreScreen;
+export default ViewAllScreen;

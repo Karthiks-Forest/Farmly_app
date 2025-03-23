@@ -38,6 +38,21 @@ export const initDB = () => {
       () => console.log('Cart table created'),
       error => console.log('Cart table error', error),
     );
+
+    // Create orders table
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS orders (
+        order_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        products TEXT NOT NULL,
+        total_amount REAL NOT NULL,
+        created_at TEXT DEFAULT (datetime('now','localtime')),
+        FOREIGN KEY(user_id) REFERENCES users(id)
+      );`,
+      [],
+      () => console.log('Orders table created'),
+      error => console.log('Orders table error', error),
+    );
   });
 };
 
@@ -108,7 +123,7 @@ export const loginUser = (username, password) => {
 
 // Add to cart with user association
 export const addToCart = async (product, userId) => {
-  console.log(userId)
+  console.log(userId);
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
@@ -173,4 +188,57 @@ export const removeFromCart = (userId, productId) => {
       error => console.log('Error removing item', error),
     );
   });
+};
+
+export const placeOrder = async (userId, products, totalAmount) => {
+  try {
+    await db.transaction(async tx => {
+      await tx.executeSql(
+        'INSERT INTO orders (user_id, products, total_amount) VALUES (?, ?, ?)',
+        [userId, JSON.stringify(products), totalAmount],
+        (_, result) => console.log('Order inserted successfully:', result),
+        (_, error) => console.error('Error inserting order:', error),
+      );
+
+      await tx.executeSql(
+        'DELETE FROM cart WHERE user_id = ?',
+        [userId],
+        () => console.log('Cart cleared after order'),
+        (_, error) => console.error('Error clearing cart:', error),
+      );
+    });
+    return true;
+  } catch (error) {
+    console.error('Error placing order:', error);
+    return false;
+  }
+};
+
+// Update the getOrders function in db.js
+export const getOrders = async userId => {
+  try {
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
+          [userId],
+          (_, result) => {
+            const orders = [];
+            for (let i = 0; i < result.rows.length; i++) {
+              orders.push(result.rows.item(i));
+            }
+            console.log('Orders fetched:', orders);
+            resolve(orders);
+          },
+          (_, error) => {
+            console.error('Error fetching orders:', error);
+            reject([]);
+          },
+        );
+      });
+    });
+  } catch (error) {
+    console.error('Error in getOrders:', error);
+    return [];
+  }
 };

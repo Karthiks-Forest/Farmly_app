@@ -97,11 +97,33 @@ const CartScreen = () => {
     }
   };
 
+  // const calculateTotal = () => {
+  //   return cartItems
+  //     .reduce((total, item) => {
+  //       const price = parseFloat(item.product.price.replace(/[^0-9.]/g, ''));
+  //       return total + price * item.quantity;
+  //     }, 0)
+  //     .toFixed(2);
+  // };
+
   const calculateTotal = () => {
     return cartItems
       .reduce((total, item) => {
-        const price = parseFloat(item.product.price.replace(/[^0-9.]/g, ''));
-        return total + price * item.quantity;
+        // Remove all non-digit characters except periods
+        const cleanedPrice = item.product.price.replace(/[^0-9.]/g, '');
+
+        // Handle cases with multiple decimal points
+        const decimalParts = cleanedPrice.split('.');
+        let priceValue;
+
+        if (decimalParts.length > 1) {
+          // Take only the first decimal part
+          priceValue = parseFloat(`${decimalParts[0]}.${decimalParts[1]}`);
+        } else {
+          priceValue = parseFloat(cleanedPrice);
+        }
+
+        return total + (priceValue || 0) * item.quantity;
       }, 0)
       .toFixed(2);
   };
@@ -128,27 +150,6 @@ const CartScreen = () => {
         </View>
 
         <View>
-          {/* <FlatList
-            contentContainerStyle={styles.scrollContainer}
-            data={cartItems}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={item => item.id.toString()}
-            renderItem={({item}) =>
-              item.product ? (
-                <View style={styles.cartItem}>
-                  <Image
-                    source={{uri: item.product.image}}
-                    style={styles.image}
-                  />
-                  <View style={styles.details}>
-                    <Text style={styles.name}>{t(item.product.name)}</Text>
-                    <Text style={styles.price}>{item.product.price}</Text>
-                    <Text style={styles.quantity}>Qty: {item.quantity}</Text>
-                  </View>
-                </View>
-              ) : null
-            }
-          /> */}
           <FlatList
             contentContainerStyle={styles.scrollContainer}
             data={cartItems}
@@ -202,7 +203,13 @@ const CartScreen = () => {
                 </Text>
                 <TouchableOpacity
                   style={styles.checkoutButton}
-                  onPress={() => navigation.navigate('Checkout')}>
+                  onPress={() =>
+                    navigation.navigate('buystack', {
+                      cartItems: cartItems.filter(
+                        item => item.product !== null,
+                      ),
+                    })
+                  }>
                   <Text style={styles.checkoutText}>{t('checkout')}</Text>
                 </TouchableOpacity>
               </View>
@@ -302,7 +309,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginHorizontal: 10,
     fontFamily: 'Sansita-Bold',
-    color: "#333"
+    color: '#333',
   },
   totalContainer: {
     padding: 20,

@@ -1,14 +1,26 @@
-import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import EncryptedStorage from 'react-native-encrypted-storage';
 
 const SettingsScreen = () => {
   const {t, i18n} = useTranslation();
   const [language, setLanguage] = useState(i18n.language);
 
-  // Change language and persist it
+  const languages = [
+    {code: 'en', name: 'English', native: 'English'},
+    {code: 'hi', name: 'हिन्दी', native: 'Hindi'},
+    {code: 'ta', name: 'தமிழ்', native: 'Tamil'},
+    {code: 'te', name: 'తెలుగు', native: 'Telugu'},
+  ];
+
   const changeLanguage = async lang => {
     i18n.changeLanguage(lang);
     setLanguage(lang);
@@ -16,60 +28,92 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('Settings')}</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('language_settings')}</Text>
+        <View style={styles.headerBorder} />
+      </View>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => changeLanguage('en')}>
-        <Text style={styles.buttonText}>English</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => changeLanguage('hi')}>
-        <Text style={styles.buttonText}>हिन्दी (Hindi)</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => changeLanguage('ta')}>
-        <Text style={styles.buttonText}>தமிழ் (Tamil)</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => changeLanguage('te')}>
-        <Text style={styles.buttonText}>తెలుగు (Telugu)</Text>
-      </TouchableOpacity>
-    </View>
+      {languages.map(lang => (
+        <TouchableOpacity
+          key={lang.code}
+          style={[
+            styles.languageItem,
+            language === lang.code && styles.activeItem,
+          ]}
+          onPress={() => changeLanguage(lang.code)}
+          activeOpacity={0.8}>
+          <MaterialIcons
+            name="language"
+            size={24}
+            color={language === lang.code ? '#709856' : '#666'}
+          />
+          <View style={styles.languageTextContainer}>
+            <Text style={styles.languageName}>{lang.name}</Text>
+            <Text style={styles.languageNative}>{lang.native}</Text>
+          </View>
+          {language === lang.code && (
+            <MaterialIcons name="check-circle" size={24} color="#709856" />
+          )}
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
   );
 };
 
-export default SettingsScreen;
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexGrow: 1,
     backgroundColor: '#F4F4F4',
+    padding: 20,
+  },
+  header: {
+    marginBottom: 30,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#212121',
+    fontSize: 24,
+    fontFamily: 'Sansita-Bold',
+    color: '#709856',
+    marginBottom: 10,
   },
-  button: {
-    backgroundColor: '#008CBA',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginVertical: 5,
+  headerBorder: {
+    height: 2,
+    backgroundColor: '#E0E0E0',
+    width: '30%',
   },
-  buttonText: {
-    color: '#FFFFFF',
+  languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  activeItem: {
+    borderWidth: 1,
+    borderColor: '#709856',
+    backgroundColor: '#F8FFF4',
+  },
+  languageTextContainer: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  languageName: {
     fontSize: 16,
+    fontFamily: 'Sansita-Bold',
+    color: '#333',
+  },
+  languageNative: {
+    fontSize: 14,
+    fontFamily: 'Sansita-Regular',
+    color: '#666',
+    marginTop: 4,
   },
 });
+
+export default SettingsScreen;
