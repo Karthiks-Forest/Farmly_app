@@ -7,6 +7,7 @@ apply plugin: "com.facebook.react"
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
+    apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
     // root = file("../../")
@@ -86,6 +87,14 @@ android {
         versionName "1.0"
     }
     signingConfigs {
+        // release {
+        //     if(project.hasProperty('MYAPP_UPLOAD_STORE_FILE')){
+        //         storeFile file(MYAPP_UPLOAD_STORE_FILE)
+        //         storePassword MYAPP_UPLOAD_STORE_PASSWORD
+        //         keyAlias MYAPP_UPLOAD_KEY_ALIAS
+        //         keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+        //     }
+        // }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
